@@ -1,7 +1,7 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHistory } from 'vue-router'
 
-import e404 from './views/404.vue';
-import home from './views/home.vue';
+import e404 from './views/404.vue'
+import game from './views/game.vue'
 
 export default createRouter({
   history: createWebHistory(),
@@ -12,7 +12,7 @@ export default createRouter({
     },
     {
       path: '/',
-      component: home,
+      component: game,
     },
   ],
-});
+})

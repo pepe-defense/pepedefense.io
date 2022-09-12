@@ -3,7 +3,7 @@ router-view
 </template>
 
 <script setup>
-const name = 'app';
+const name = 'app'
 </script>
 
 <style lang="stylus">

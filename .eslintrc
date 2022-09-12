@@ -2,9 +2,15 @@
   "extends": ["standard", "prettier"],
   "parser": "vue-eslint-parser",
   "parserOptions": {
+    "parser": "@babel/eslint-parser",
     "requireConfigFile": false,
     "sourceType": "module",
-    "ecmaVersion": 12
+    "ecmaVersion": 2022,
+    "babelOptions": {
+      "plugins": [
+        "@babel/plugin-syntax-import-assertions"
+      ]
+    }
   },
   "rules": {
     "camelcase": "off",
