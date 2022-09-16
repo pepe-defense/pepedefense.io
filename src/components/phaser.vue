@@ -6,19 +6,18 @@ import base_scene from '../core/base_scene.js'
 
 const canvas = ref()
 const phaser = inject('game')
-const SIZE = 960 * 2
 
 onMounted(() => {
   const game = new Phaser.Game({
     type: Phaser.AUTO,
-    width: SIZE,
-    height: SIZE,
+    width: 1920,
+    height: 1080,
     pixelArt: true,
-    parent: canvas.value.el,
-    // scale: {
-    //   mode: Phaser.Scale.ENVELOP,
-    //   autoCenter: Phaser.Scale.CENTER_BOTH,
-    // },
+    parent: canvas.value,
+    scale: {
+      mode: Phaser.Scale.ENVELOP,
+      autoCenter: Phaser.Scale.CENTER_BOTH,
+    },
     physics: {
       default: 'arcade',
       arcade: {

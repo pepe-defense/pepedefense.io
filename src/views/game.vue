@@ -9,16 +9,21 @@ provide('game', game)
 </script>
 
 <template lang="pug">
-Suspense
-  Phaser
-  template(#fallback)
-    .placeholder Downloading..
+.game__container
+  Suspense
+    Phaser
+    template(#fallback)
+      .placeholder Downloading..
 </template>
 
 <style lang="stylus" scoped>
-.placeholder
-  font-size 2rem
 
-div
-  color gold
+.game__container
+  display flex
+  width 100vw
+  height 100vh
+  justify-content center
+  align-items center
+  .placeholder
+    font-size 2rem
 </style>
