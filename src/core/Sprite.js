@@ -15,6 +15,7 @@ export default class {
     offset_y = 0.5,
     x = 0,
     y = 0,
+    on_click = () => {},
   }) {
     this.img.src = src
     this.frames = {
@@ -26,7 +27,7 @@ export default class {
       offset_y,
       loop: true,
     }
-    Object.assign(this, { x, y, scale })
+    Object.assign(this, { x, y, scale, on_click })
   }
 
   get crop_width() {

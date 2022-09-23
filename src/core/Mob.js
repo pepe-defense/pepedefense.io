@@ -132,6 +132,7 @@ export default class Mob extends Sprite {
     this.frames.elapsed = 0
     this.frames.hold = this.frame_die_hold
     this.frames.loop = false
+    this.emitter.once('frame_loop', () => (this.can_be_removed = true))
   }
 
   hit(damage) {
@@ -140,17 +141,26 @@ export default class Mob extends Sprite {
   }
 
   move() {
-    const { cell, next_cell, cell_index, dead } = this
+    const { cell, next_cell, cell_index, dead, steps } = this
     if (!next_cell || dead) return
 
-    new TWEEN.Tween({ steps: this.steps })
+    new TWEEN.Tween({ steps })
       .to({ steps: this.steps + this.speed }, TICK_TIME)
       .onUpdate(({ steps }) => {
         const cells_passed = Math.floor(steps / 100)
-        this.steps = steps - cells_passed * 100
+        this.steps = Math.floor(steps - cells_passed * 100)
         this.cell_index = cell_index + cells_passed
       })
       .start()
+      .onComplete(() => {
+        console.log('on complete')
+        this.steps = steps + this.speed
+        this.cell_index = cell_index
+        while (this.steps >= 100) {
+          this.steps -= 100
+          this.cell_index++
+        }
+      })
   }
 
   draw_health(c) {

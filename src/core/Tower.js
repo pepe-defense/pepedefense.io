@@ -30,10 +30,6 @@ export default class extends Sprite {
     return TOWERS_CELLS[this.tile_index]
   }
 
-  is_in_range(target) {
-    return this.distance_manhattan(target) <= this.range
-  }
-
   is_tile_in_range(target) {
     return this.distance_manhattan(target) <= this.range
   }

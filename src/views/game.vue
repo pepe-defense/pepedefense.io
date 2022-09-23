@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import TWEEN from '@tweenjs/tween.js'
 
 import {
@@ -8,12 +8,13 @@ import {
   MAP_WIDTH,
   MAP_HEIGHT,
 } from '../core/constant.js'
-import Game from '../core/Waves.js'
+import Game from '../core/Game.js'
 const cvs = ref()
-const mouse = {
-  x: 0,
-  y: 0,
-}
+const state = reactive({
+  life: 0,
+  wave: 0,
+})
+
 onMounted(() => {
   const canvas = cvs.value
   canvas.width = MAP_WIDTH * TILE_PIXEL_SIZE
@@ -21,19 +22,20 @@ onMounted(() => {
 
   /** @type {CanvasRenderingContext2D} */
   const c = canvas.getContext('2d')
-  const game = new Game()
+  const game = new Game(canvas.width, canvas.height)
 
   // game.place_tower(0)
 
   canvas.addEventListener('mousemove', ({ clientX, clientY }) => {
     const { top, left } = cvs.value.getBoundingClientRect()
-    const x = clientX - left
-    const y = clientY - top
-    Object.assign(mouse, { x, y })
+    Game.globals.mouse = {
+      x: clientX - left,
+      y: clientY - top,
+    }
   })
 
   canvas.addEventListener('click', () => {
-    if(!game.started)
+    game.on_click()
   })
 
   let last_tick = 0
@@ -43,9 +45,11 @@ onMounted(() => {
     if (elapsed >= TICK_TIME) {
       last_tick = Date.now()
       game.on_tick()
+      if (state.life !== game.scene.life) state.life = game.scene.life
+      if (state.wave !== game.scene.wave) state.wave = game.scene.wave
     }
     TWEEN.update(time)
-    game.on_render(c, canvas.width, canvas.height, mouse)
+    game.on_render(c)
     requestAnimationFrame(animate)
   }
 
@@ -55,18 +59,27 @@ onMounted(() => {
 
 <template lang="pug">
 .game__container
+  .infos
+    .life Life: {{ state.life }}
+    .wave Wave: {{ state.wave }}
   canvas(ref="cvs")
 </template>
 
 <style lang="stylus" scoped>
-b b
-
 .game__container
   display flex
   width 100vw
   height 100vh
   justify-content center
   align-items center
+  flex-flow column nowrap
+  .infos
+    display flex
+    flex-flow row nowrap
+    color white
+    margin-bottom .5em
+    .life
+      padding 0 1em
   canvas
     background black
     // width 100%
