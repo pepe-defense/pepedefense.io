@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import TWEEN from '@tweenjs/tween.js'
 
 import {
@@ -10,10 +10,6 @@ import {
 } from '../core/constant.js'
 import Game from '../core/Game.js'
 const cvs = ref()
-const state = reactive({
-  life: 0,
-  wave: 0,
-})
 
 onMounted(() => {
   const canvas = cvs.value
@@ -22,9 +18,9 @@ onMounted(() => {
 
   /** @type {CanvasRenderingContext2D} */
   const c = canvas.getContext('2d')
+  c.font = '35px Raleway'
+  c.textAlign = 'center'
   const game = new Game(canvas.width, canvas.height)
-
-  // game.place_tower(0)
 
   canvas.addEventListener('mousemove', ({ clientX, clientY }) => {
     const { top, left } = cvs.value.getBoundingClientRect()
@@ -45,11 +41,9 @@ onMounted(() => {
     if (elapsed >= TICK_TIME) {
       last_tick = Date.now()
       game.on_tick()
-      if (state.life !== game.scene.life) state.life = game.scene.life
-      if (state.wave !== game.scene.wave) state.wave = game.scene.wave
     }
-    TWEEN.update(time)
     game.on_render(c)
+    TWEEN.update(time)
     requestAnimationFrame(animate)
   }
 
@@ -59,9 +53,6 @@ onMounted(() => {
 
 <template lang="pug">
 .game__container
-  .infos
-    .life Life: {{ state.life }}
-    .wave Wave: {{ state.wave }}
   canvas(ref="cvs")
 </template>
 
@@ -78,6 +69,16 @@ onMounted(() => {
     flex-flow row nowrap
     color white
     margin-bottom .5em
+    .leaderboard
+      display flex
+      flex-flow column nowrap
+      .entry
+        font-size .7em
+        padding .25em
+        margin .25em
+        border 1px solid gold
+
+
     .life
       padding 0 1em
   canvas

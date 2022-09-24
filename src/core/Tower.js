@@ -11,6 +11,7 @@ import Sprite from './Sprite.js'
 
 export default class extends Sprite {
   last_fired = 0
+  score_value = 100
   lightnings = new Set()
 
   constructor({ tile_index, range, damage = 1, fire_rate = 5 }) {
@@ -40,7 +41,9 @@ export default class extends Sprite {
 
   on_tick({ tick, mobs }) {
     if (this.can_fire(tick)) {
-      const mob = mobs.find(mob => this.is_tile_in_range(mob.cell) && !mob.dead)
+      const mob = mobs.find(mob => {
+        return this.is_tile_in_range(mob.cell) && !mob.dead
+      })
       if (mob) {
         this.last_fired = tick
         const lightning = new Lightning(mob)

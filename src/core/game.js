@@ -15,6 +15,7 @@ export default class Game {
     width: 0,
     height: 0,
     mouse: { x: 0, y: 0 },
+    leaderboard: new Map(),
   }
 
   constructor(width, height) {
@@ -55,5 +56,16 @@ export default class Game {
   on_render(/** @type {CanvasRenderingContext2D} */ c) {
     this.scene.on_render(c)
     this.buttons.forEach(btn => btn.draw(c))
+  }
+
+  static set_score(name, score) {
+    const current_score = Game.globals.leaderboard.get(name)
+    if (current_score > score) return
+    Game.globals.leaderboard.set(name, score)
+    Game.globals.leaderboard = new Map(
+      [...Game.globals.leaderboard.entries()]
+        .sort(([, p1], [, p2]) => p1.score - p2.score)
+        .slice(0, 10)
+    )
   }
 }

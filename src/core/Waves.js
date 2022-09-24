@@ -1,6 +1,10 @@
 import map from '../assets/map.png'
 import background_mp3 from '../assets/background_music.mp3'
+import skull_anim from '../assets/skull_anim.png'
 import skull from '../assets/skull.png'
+import heart from '../assets/heart.png'
+import table from '../assets/table_down.png'
+import star from '../assets/star.png'
 
 import {
   curve,
@@ -17,6 +21,8 @@ import Tower from './Tower.js'
 import Sprite from './Sprite.js'
 import Game from './Game.js'
 
+const NAME = 'sceat'
+
 export default class {
   finished = false
   score = 0
@@ -31,6 +37,7 @@ export default class {
 
   background = new Image()
   start_wave_button
+  static_sprites = []
 
   constructor(show_menu) {
     this.background.src = map
@@ -39,6 +46,19 @@ export default class {
       this.placement_tiles.push(new PlacementTile({ tile_index }))
     })
     this.show_start_wave_button()
+    this.static_sprites = [
+      new Sprite({
+        src: table,
+        x: 10,
+        y: 10,
+        offset_x: 0,
+        offset_y: 0,
+        scale: 0.3,
+      }),
+      new Sprite({ src: heart, x: 85, y: 38, scale: 1 }),
+      new Sprite({ src: skull, x: 200, y: 38, scale: 0.35 }),
+      new Sprite({ src: star, x: 330, y: 38, scale: 1.2 }),
+    ]
   }
 
   get is_wave_in_progress() {
@@ -58,7 +78,7 @@ export default class {
 
   show_start_wave_button() {
     this.start_wave_button = new Sprite({
-      src: skull,
+      src: skull_anim,
       x: 35,
       y: MOB_PATH[0].y * TILE_PIXEL_SIZE + TILE_PIXEL_SIZE / 2,
       on_click: () => this.start(),
@@ -123,6 +143,15 @@ export default class {
       this.towers.set(tile_index, new Tower({ tile_index, range: 3 }))
   }
 
+  compute_score() {
+    const towers_value = [...this.towers.values()].reduce(
+      (acc, { score_value }) => acc + score_value,
+      0
+    )
+    const intermediate = towers_value * this.life * this.wave * this.wave
+    return this.tick >= intermediate ? 0 : intermediate - this.tick
+  }
+
   on_tick() {
     if (!this.started) return
     const { tick, mobs } = this
@@ -141,14 +170,15 @@ export default class {
 
     this.remove_dead_mobs()
 
+    // wave end
     if (this.all_spawned && !this.mobs.length) {
+      this.score = this.compute_score()
+      Game.set_score(NAME, this.score)
       this.started = false
       this.wave++
       this.mobs_spawned = 0
       this.show_start_wave_button()
-    }
-
-    this.tick++
+    } else this.tick++
   }
 
   on_render(/** @type {CanvasRenderingContext2D} */ c) {
@@ -169,5 +199,12 @@ export default class {
     this.placement_tiles.forEach(tile => tile.draw(c, mouse))
     this.mobs.forEach(mob => mob.draw(c))
     this.towers.forEach(tower => tower.draw(c, mouse))
+
+    this.static_sprites.forEach(sprite => sprite.draw(c))
+    c.fillStyle = 'white'
+
+    c.fillText(this.life, 45, 49)
+    c.fillText(this.wave, 160, 49)
+    c.fillText(Game.globals.leaderboard.get(NAME) ?? 0, 470, 49)
   }
 }

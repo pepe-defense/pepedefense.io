@@ -31,7 +31,13 @@ const cell_direction = (last, next) => {
 
 export default class Mob extends Sprite {
   steps = 0
+
+  // each physical_X represent the tweened value
+  // which is different from a real move result (on the blockchain)
+  // tweened values take times while a real move is a teleportation
+  physical_steps = 0
   cell_index = 1
+  physical_cell_index = 1
   health_bar_green = new Image()
   health_bar_red = new Image()
 
@@ -70,53 +76,55 @@ export default class Mob extends Sprite {
     this.health_bar_red.src = health_bar_red_png
   }
 
-  get last_cell() {
-    return MOB_PATH[this.cell_index - 1]
+  get last_physical_cell() {
+    return MOB_PATH[this.physical_cell_index - 1]
+  }
+
+  get next_physical_cell() {
+    return MOB_PATH[this.physical_cell_index + 1]
   }
 
   get next_cell() {
     return MOB_PATH[this.cell_index + 1]
   }
 
+  get physical_cell() {
+    return MOB_PATH[this.physical_cell_index]
+  }
+
   get cell() {
     return MOB_PATH[this.cell_index]
   }
 
-  get cell_position() {
-    const { x, y } = this.cell
-    return {
-      x: x * TILE_PIXEL_SIZE,
-      y: y * TILE_PIXEL_SIZE,
-    }
-  }
-
   update_position() {
     const half_tile = TILE_PIXEL_SIZE / 2
-    const { x, y } = this.cell_position
-    if (this.steps === 50) {
+    const { physical_steps } = this
+    const x = this.physical_cell.x * TILE_PIXEL_SIZE
+    const y = this.physical_cell.y * TILE_PIXEL_SIZE
+    if (physical_steps === 50) {
       this.x = x + half_tile
       this.y = y + half_tile
     }
     const direction =
-      this.steps < 50
-        ? cell_direction(this.last_cell, this.cell)
-        : cell_direction(this.cell, this.next_cell)
+      physical_steps < 50
+        ? cell_direction(this.last_physical_cell, this.physical_cell)
+        : cell_direction(this.physical_cell, this.next_physical_cell)
     switch (direction) {
       case 'LEFT':
-        this.x = x + tile_percent(this.steps)
+        this.x = x + tile_percent(physical_steps)
         this.y = y + half_tile
         break
       case 'RIGHT':
-        this.x = x + tile_percent(100 - this.steps)
+        this.x = x + tile_percent(100 - physical_steps)
         this.y = y + half_tile
         break
       case 'UP':
         this.x = x + half_tile
-        this.y = y + tile_percent(this.steps)
+        this.y = y + tile_percent(physical_steps)
         break
       case 'DOWN':
         this.x = x + half_tile
-        this.y = y + tile_percent(100 - this.steps)
+        this.y = y + tile_percent(100 - physical_steps)
         break
     }
   }
@@ -141,26 +149,23 @@ export default class Mob extends Sprite {
   }
 
   move() {
-    const { cell, next_cell, cell_index, dead, steps } = this
+    const { next_cell, dead, speed, steps, cell_index } = this
     if (!next_cell || dead) return
 
+    this.steps += speed
+    while (this.steps >= 100) {
+      this.steps -= 100
+      this.cell_index++
+    }
+
     new TWEEN.Tween({ steps })
-      .to({ steps: this.steps + this.speed }, TICK_TIME)
+      .to({ steps: steps + speed }, TICK_TIME)
       .onUpdate(({ steps }) => {
         const cells_passed = Math.floor(steps / 100)
-        this.steps = Math.floor(steps - cells_passed * 100)
-        this.cell_index = cell_index + cells_passed
+        this.physical_steps = Math.floor(steps - cells_passed * 100)
+        this.physical_cell_index = cell_index + cells_passed
       })
       .start()
-      .onComplete(() => {
-        console.log('on complete')
-        this.steps = steps + this.speed
-        this.cell_index = cell_index
-        while (this.steps >= 100) {
-          this.steps -= 100
-          this.cell_index++
-        }
-      })
   }
 
   draw_health(c) {
@@ -195,7 +200,7 @@ export default class Mob extends Sprite {
   color = `hsl(${360 * Math.random()}, 50%, 50%)`
 
   draw(/** @type {CanvasRenderingContext2D} */ c) {
-    if (!this.cell) return
+    if (!this.physical_cell) return
     this.update_position()
     super.draw(c)
     this.draw_health(c)
