@@ -40,5 +40,8 @@ export const cell_center = ({ x, y }) => ({
   x: x * TILE_PIXEL_SIZE + TILE_PIXEL_SIZE / 2,
   y: y * TILE_PIXEL_SIZE + TILE_PIXEL_SIZE / 2,
 })
-export const cell_id = ({ x, y }) => y * MAP_WIDTH * FACTOR + x
+export const cell_id = ({ x, y }) => y * MAP_WIDTH + x
 export const tile_percent = percent => (TILE_PIXEL_SIZE * percent) / 100
+
+console.log(`Mob [${MOB_PATH.map(cell_id).join(',')}]`)
+console.log(`Towers [${TOWERS_CELLS.map(cell_id).join(',')}]`)
