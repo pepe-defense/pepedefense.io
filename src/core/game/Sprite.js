@@ -1,6 +1,6 @@
 import EventEmitter from 'events'
 
-import { FACTOR } from '../core/constant.js'
+import { FACTOR } from '../constant.js'
 
 export default class {
   img = new Image()

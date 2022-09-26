@@ -10,7 +10,7 @@ export const MOB_BASE_DAMAGE = 1
 export const MOB_LIFE_MODIFIER = 151
 export const MOB_AMOUNT_MODIFIER = 110
 export const MOB_SPEED_MODIFIER = 116
-export const FACTOR = 0.4
+export const FACTOR = 0.3
 export const TICK_TIME = 300
 export const TILE_PIXEL_SIZE = 256 * FACTOR
 
@@ -43,5 +43,5 @@ export const cell_center = ({ x, y }) => ({
 export const cell_id = ({ x, y }) => y * MAP_WIDTH + x
 export const tile_percent = percent => (TILE_PIXEL_SIZE * percent) / 100
 
-console.log(`Mob [${MOB_PATH.map(cell_id).join(',')}]`)
-console.log(`Towers [${TOWERS_CELLS.map(cell_id).join(',')}]`)
+// console.log(`Mob [${MOB_PATH.map(cell_id).join(',')}]`)
+// console.log(`Towers [${TOWERS_CELLS.map(cell_id).join(',')}]`)

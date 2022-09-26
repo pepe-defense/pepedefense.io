@@ -1,5 +1,5 @@
-import lightning from '../assets/lightning.png'
-import lightning_mp3 from '../assets/lightning.mp3'
+import lightning from '../../assets/lightning.png'
+import lightning_mp3 from '../../assets/lightning.mp3'
 
 import Sprite from './Sprite.js'
 import Sound from './Sound.js'

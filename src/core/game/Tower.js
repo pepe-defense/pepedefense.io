@@ -1,30 +1,43 @@
-import tower_sprite from '../assets/tower.png'
+import tower_sprite from '../../assets/tower.png'
 import {
   TOWERS_CELLS,
   TILE_PIXEL_SIZE,
   MAP_WIDTH,
   MAP_HEIGHT,
-} from '../core/constant.js'
+  cell_id,
+} from '../constant.js'
 
 import { Lightning } from './Lightning.js'
 import Sprite from './Sprite.js'
 
 export default class extends Sprite {
-  last_fired = 0
-  score_value = 100
   lightnings = new Set()
 
-  constructor({ tile_index, range, damage = 1, fire_rate = 5 }) {
+  constructor({
+    tile_index,
+    range,
+    damage = 1,
+    fire_rate = 5,
+    score_value = 100,
+  }) {
     super({ src: tower_sprite, offset_y: 0.7 })
     this.tile_index = tile_index
     const { x, y } = this.tile
+    this.cell_id = cell_id({ x, y })
     Object.assign(this, {
       range,
       damage,
       fire_rate,
+      score_value,
+      last_fired: 0,
       x: x * TILE_PIXEL_SIZE + TILE_PIXEL_SIZE / 2,
       y: y * TILE_PIXEL_SIZE + TILE_PIXEL_SIZE / 2,
     })
+  }
+
+  get blockchain_tower() {
+    const { cell_id, damage, range, fire_rate, score_value } = this
+    return { cell_id, damage, range, fire_rate, score_value, last_fired: 0 }
   }
 
   get tile() {

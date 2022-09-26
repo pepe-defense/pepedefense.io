@@ -1,7 +1,7 @@
 import TWEEN from '@tweenjs/tween.js'
 
-import health_bar_green_png from '../assets/health_bar_green.png'
-import health_bar_red_png from '../assets/health_bar_red.png'
+import health_bar_green_png from '../../assets/health_bar_green.png'
+import health_bar_red_png from '../../assets/health_bar_red.png'
 import {
   curve,
   tile_percent,
@@ -17,7 +17,7 @@ import {
   MOB_SPEED_MODIFIER,
   TICK_TIME,
   TILE_PIXEL_SIZE,
-} from '../core/constant.js'
+} from '../constant.js'
 
 import Sprite from './Sprite.js'
 import draw_circle from './draw_circle.js'

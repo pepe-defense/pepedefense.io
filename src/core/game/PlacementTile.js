@@ -1,5 +1,5 @@
-import dot from '../assets/dot.png'
-import { TOWERS_CELLS, TILE_PIXEL_SIZE } from '../core/constant.js'
+import dot from '../../assets/dot.png'
+import { TOWERS_CELLS, TILE_PIXEL_SIZE } from '../constant.js'
 
 import Sprite from './Sprite.js'
 

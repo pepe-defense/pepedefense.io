@@ -1,11 +1,11 @@
-import map from '../assets/map.png'
-import background_mp3 from '../assets/background_music.mp3'
-import skull_anim from '../assets/skull_anim.png'
-import skull from '../assets/skull.png'
-import heart from '../assets/heart.png'
-import table from '../assets/table_down.png'
-import star from '../assets/star.png'
-
+import map from '../../assets/map.png'
+import background_mp3 from '../../assets/background_music.mp3'
+import skull_anim from '../../assets/skull_anim.png'
+import skull from '../../assets/skull.png'
+import heart from '../../assets/heart.png'
+import table from '../../assets/table_down.png'
+import star from '../../assets/star.png'
+import confirm from '../../assets/btn_accept.png'
 import {
   curve,
   MAX_WAVES,
@@ -14,7 +14,9 @@ import {
   MOB_PATH,
   TILE_PIXEL_SIZE,
   TOWERS_CELLS,
-} from './constant.js'
+} from '../constant.js'
+
+import Text from './Text.js'
 import Orc from './Orc.js'
 import PlacementTile from './PlacementTile.js'
 import Tower from './Tower.js'
@@ -37,6 +39,8 @@ export default class {
 
   background = new Image()
   start_wave_button
+  place_tower_text
+  place_tower_btn
   static_sprites = []
 
   constructor(show_menu) {
@@ -46,18 +50,24 @@ export default class {
       this.placement_tiles.push(new PlacementTile({ tile_index }))
     })
     this.show_start_wave_button()
+    this.show_place_towers_ui()
+
     this.static_sprites = [
-      new Sprite({
-        src: table,
-        x: 10,
-        y: 10,
-        offset_x: 0,
-        offset_y: 0,
+      new Text({ x: 25, y: 25, text: () => this.life, icon: heart, scale: 1 }),
+      new Text({
+        x: 25,
+        y: 65,
+        text: () => `wave  ${this.wave}/${MAX_WAVES}`,
+        icon: skull,
         scale: 0.3,
       }),
-      new Sprite({ src: heart, x: 85, y: 38, scale: 1 }),
-      new Sprite({ src: skull, x: 200, y: 38, scale: 0.35 }),
-      new Sprite({ src: star, x: 330, y: 38, scale: 1.2 }),
+      new Text({
+        x: 105,
+        y: 25,
+        text: () => this.score,
+        icon: star,
+        offset_y: 8,
+      }),
     ]
   }
 
@@ -76,14 +86,49 @@ export default class {
     return this.life < 1
   }
 
+  load_state(state) {
+    Object.assign(this, state)
+  }
+
   show_start_wave_button() {
     this.start_wave_button = new Sprite({
       src: skull_anim,
       x: 35,
       y: MOB_PATH[0].y * TILE_PIXEL_SIZE + TILE_PIXEL_SIZE / 2,
-      on_click: () => this.start(),
+      on_click: () => {
+        this.place_tower_text = undefined
+        this.place_tower_btn = undefined
+        Game.globals.loading = true
+        Game.globals.contract.start_wave()
+      },
       frame_max: 13,
       frame_hold: 10,
+    })
+  }
+
+  show_place_towers_ui() {
+    this.place_tower_text = new Text({
+      x: Game.globals.width / 2,
+      y: 10,
+      align: 'center',
+      text: 'Place some towers, click here to save them on the blockchain',
+    })
+    this.place_tower_btn = new Sprite({
+      src: confirm,
+      x: Game.globals.width / 2,
+      y: 70,
+      on_click: () => {
+        Game.globals.loading = true
+        console.log(
+          'storing',
+          [...this.towers.values()].map(tower => tower.blockchain_tower)
+        )
+        Game.globals.contract
+          .set_towers(
+            [...this.towers.values()].map(tower => tower.blockchain_tower)
+          )
+          .finally(() => (Game.globals.loading = false))
+      },
     })
   }
 
@@ -108,11 +153,6 @@ export default class {
     this.mobs_spawned++
   }
 
-  place_tower(tile_index) {
-    if (this.towers.has(tile_index)) return
-    this.towers.set(tile_index, new Tower({ tile_index, range: 150 }))
-  }
-
   on_game_lost() {
     this.show_menu()
   }
@@ -133,14 +173,18 @@ export default class {
   on_click(mouse) {
     if (this.start_wave_button?.collide(mouse))
       this.start_wave_button.on_click()
+    else if (this.place_tower_btn?.collide(mouse))
+      this.place_tower_btn.on_click()
 
     if (this.started) return
     const { tile_index } =
       this.placement_tiles.find(placement_tile =>
         placement_tile.collide(mouse)
       ) ?? {}
-    if (tile_index !== undefined && !this.towers.has(tile_index))
-      this.towers.set(tile_index, new Tower({ tile_index, range: 3 }))
+    if (tile_index !== undefined) {
+      if (this.towers.has(tile_index)) this.towers.delete(tile_index)
+      else this.towers.set(tile_index, new Tower({ tile_index, range: 3 }))
+    }
   }
 
   compute_score() {
@@ -172,8 +216,8 @@ export default class {
 
     // wave end
     if (this.all_spawned && !this.mobs.length) {
-      this.score = this.compute_score()
-      Game.set_score(NAME, this.score)
+      Game.set_score(NAME, this.compute_score())
+      this.score = Game.globals.leaderboard.get(NAME)
       this.started = false
       this.wave++
       this.mobs_spawned = 0
@@ -201,10 +245,8 @@ export default class {
     this.towers.forEach(tower => tower.draw(c, mouse))
 
     this.static_sprites.forEach(sprite => sprite.draw(c))
-    c.fillStyle = 'white'
-
-    c.fillText(this.life, 45, 49)
-    c.fillText(this.wave, 160, 49)
-    c.fillText(Game.globals.leaderboard.get(NAME) ?? 0, 470, 49)
+    this.place_tower_text?.draw(c)
+    this.place_tower_btn?.draw(c)
+    // c.fillText(Game.globals.leaderboard.get(NAME) ?? 0, 470, 49)
   }
 }

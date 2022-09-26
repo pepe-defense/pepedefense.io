@@ -1,7 +1,7 @@
-import orc_png from '../assets/orc.png'
-import orc_die_png from '../assets/orc_die.png'
+import orc_png from '../../assets/orc.png'
+import orc_die_png from '../../assets/orc_die.png'
+import { TICK_TIME } from '../constant.js'
 
-import { TICK_TIME } from './constant.js'
 import Mob from './Mob.js'
 
 export default class Orc extends Mob {

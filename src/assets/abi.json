@@ -1,0 +1,453 @@
+[
+  {
+    "inputs": [
+      { "internalType": "string", "name": "_username", "type": "string" }
+    ],
+    "name": "set_username",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "wave",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "life",
+        "type": "uint8"
+      }
+    ],
+    "name": "game_created",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "wave",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "won",
+        "type": "bool"
+      }
+    ],
+    "name": "wave_end",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "wave",
+        "type": "uint8"
+      },
+      {
+        "components": [
+          { "internalType": "bool", "name": "reached_goal", "type": "bool" },
+          { "internalType": "uint256", "name": "cell_id", "type": "uint256" },
+          { "internalType": "uint256", "name": "steps", "type": "uint256" },
+          {
+            "internalType": "uint256",
+            "name": "target_cell_index",
+            "type": "uint256"
+          },
+          { "internalType": "uint256", "name": "life", "type": "uint256" },
+          { "internalType": "uint8", "name": "damage", "type": "uint8" },
+          { "internalType": "uint256", "name": "speed", "type": "uint256" }
+        ],
+        "indexed": false,
+        "internalType": "struct Mob[]",
+        "name": "mobs",
+        "type": "tuple[]"
+      },
+      {
+        "components": [
+          { "internalType": "uint256", "name": "cell_id", "type": "uint256" },
+          { "internalType": "uint256", "name": "damage", "type": "uint256" },
+          { "internalType": "uint8", "name": "range", "type": "uint8" },
+          { "internalType": "uint8", "name": "fire_rate", "type": "uint8" },
+          {
+            "internalType": "uint256",
+            "name": "last_fired",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "score_value",
+            "type": "uint256"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct Tower[]",
+        "name": "towers",
+        "type": "tuple[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "life",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "tick",
+        "type": "uint256"
+      }
+    ],
+    "name": "wave_start",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "new_game",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          { "internalType": "uint256", "name": "cell_id", "type": "uint256" },
+          { "internalType": "uint256", "name": "damage", "type": "uint256" },
+          { "internalType": "uint8", "name": "range", "type": "uint8" },
+          { "internalType": "uint8", "name": "fire_rate", "type": "uint8" },
+          {
+            "internalType": "uint256",
+            "name": "last_fired",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "score_value",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct Tower[]",
+        "name": "_towers",
+        "type": "tuple[]"
+      }
+    ],
+    "name": "set_towers",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "start_wave",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "get_is_finished",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "get_leaderboard",
+    "outputs": [
+      {
+        "components": [
+          { "internalType": "address", "name": "user", "type": "address" },
+          { "internalType": "uint256", "name": "score", "type": "uint256" },
+          { "internalType": "string", "name": "username", "type": "string" }
+        ],
+        "internalType": "struct StateViewFacet.LadderUser[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "get_life",
+    "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "get_score",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "get_total_score",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "get_total_tick",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "get_towers",
+    "outputs": [
+      {
+        "components": [
+          { "internalType": "uint256", "name": "cell_id", "type": "uint256" },
+          { "internalType": "uint256", "name": "damage", "type": "uint256" },
+          { "internalType": "uint8", "name": "range", "type": "uint8" },
+          { "internalType": "uint8", "name": "fire_rate", "type": "uint8" },
+          {
+            "internalType": "uint256",
+            "name": "last_fired",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "score_value",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct Tower[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "get_wave",
+    "outputs": [{ "internalType": "uint8", "name": "", "type": "uint8" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "facetAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "enum IDiamondCut.FacetCutAction",
+            "name": "action",
+            "type": "uint8"
+          },
+          {
+            "internalType": "bytes4[]",
+            "name": "functionSelectors",
+            "type": "bytes4[]"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct IDiamondCut.FacetCut[]",
+        "name": "_diamondCut",
+        "type": "tuple[]"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "_init",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "_calldata",
+        "type": "bytes"
+      }
+    ],
+    "name": "DiamondCut",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "facetAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "enum IDiamondCut.FacetCutAction",
+            "name": "action",
+            "type": "uint8"
+          },
+          {
+            "internalType": "bytes4[]",
+            "name": "functionSelectors",
+            "type": "bytes4[]"
+          }
+        ],
+        "internalType": "struct IDiamondCut.FacetCut[]",
+        "name": "_diamondCut",
+        "type": "tuple[]"
+      },
+      { "internalType": "address", "name": "_init", "type": "address" },
+      { "internalType": "bytes", "name": "_calldata", "type": "bytes" }
+    ],
+    "name": "diamondCut",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      { "internalType": "address", "name": "owner_", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_newOwner", "type": "address" }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes4",
+        "name": "_functionSelector",
+        "type": "bytes4"
+      }
+    ],
+    "name": "facetAddress",
+    "outputs": [
+      { "internalType": "address", "name": "facetAddress_", "type": "address" }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "facetAddresses",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "facetAddresses_",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "address", "name": "_facet", "type": "address" }
+    ],
+    "name": "facetFunctionSelectors",
+    "outputs": [
+      {
+        "internalType": "bytes4[]",
+        "name": "facetFunctionSelectors_",
+        "type": "bytes4[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "facets",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "facetAddress",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes4[]",
+            "name": "functionSelectors",
+            "type": "bytes4[]"
+          }
+        ],
+        "internalType": "struct IDiamondLoupe.Facet[]",
+        "name": "facets_",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "internalType": "bytes4", "name": "_interfaceId", "type": "bytes4" }
+    ],
+    "name": "supportsInterface",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
