@@ -45,7 +45,7 @@ const connect = async () => {
 }
 
 onMounted(async () => {
-  if (!network.ethereum) {
+  if (!window.ethereum) {
     show_canvas.value = false
     return
   }
