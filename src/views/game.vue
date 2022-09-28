@@ -45,6 +45,10 @@ const connect = async () => {
 }
 
 onMounted(async () => {
+  if (!network.ethereum) {
+    show_canvas.value = false
+    return
+  }
   const contract = await connect()
   if (!contract) return
   const address = await contract.signer.getAddress()
@@ -93,7 +97,7 @@ onMounted(async () => {
 .game__container
   .pepe #[b PePe]Defense.io
   canvas(ref="cvs" v-if="show_canvas")
-  div(v-else) #[b Wrong network] please configure metamask to use the Polygon chain and reload the page
+  div(v-else) #[b Wrong network] please install or configure metamask to use the Polygon chain and reload the page
 </template>
 
 <style lang="stylus" scoped>
