@@ -3,7 +3,6 @@ import { onMounted, ref } from 'vue'
 import TWEEN from '@tweenjs/tween.js'
 import { ethers } from 'ethers'
 
-import abi from '../assets/abi.json'
 import switch_network from '../core/switch_network.js'
 import {
   TILE_PIXEL_SIZE,
@@ -12,30 +11,42 @@ import {
   MAP_HEIGHT,
 } from '../core/constant.js'
 import Game from '../core/game/Game.js'
+import ABI from '../assets/abi.json'
+
+const {
+  VITE_APP_CHAIN_ID = 31337,
+  CONTRACT_ADDRESS = '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318',
+} = import.meta.env
+
 const cvs = ref()
+const show_canvas = ref(true)
 
 const connect = async () => {
+  await switch_network(VITE_APP_CHAIN_ID)
+
+  const network = window.ethereum.networkVersion
+  console.log('current network', +network)
+  show_canvas.value = +network === +VITE_APP_CHAIN_ID
   const provider = new ethers.providers.Web3Provider(window.ethereum, 'any')
-  provider.on('network', (_, oldNetwork) => {
+  await provider.send('eth_requestAccounts', [])
+  provider.on('network', new_network => {
     // When a Provider makes its initial connection, it emits a "network"
     // event with a null oldNetwork along with the newNetwork. So, if the
     // oldNetwork exists, it represents a changing network
-    if (oldNetwork) {
-      setTimeout(() => switch_network('mumbai'), 1000)
-      window.location.reload()
-    }
+    show_canvas.value = +new_network.chainId === VITE_APP_CHAIN_ID
   })
-  await switch_network('mumbai')
-  await provider.send('eth_requestAccounts', [])
-  return new ethers.Contract(
-    '0xF23214DDb8beBAe7d54b96309cE7EE5Bd9081ca3',
-    abi,
-    provider.getSigner()
-  )
+  window.ethereum.on('accountsChanged', () => {
+    alert(
+      'metamask account changed, to logout or use another address please disconnect this app in the metamask interface first'
+    )
+  })
+  if (show_canvas.value)
+    return new ethers.Contract(CONTRACT_ADDRESS, ABI, provider.getSigner())
 }
 
 onMounted(async () => {
   const contract = await connect()
+  if (!contract) return
   const address = await contract.signer.getAddress()
   const canvas = cvs.value
   canvas.width = MAP_WIDTH * TILE_PIXEL_SIZE
@@ -46,9 +57,7 @@ onMounted(async () => {
   c.font = '20px Raleway'
   c.textAlign = 'center'
   const game = new Game({ contract, address, canvas })
-  const wave = await contract.get_wave()
-
-  if (wave > 0) game.load_game(wave)
+  await game.load()
 
   canvas.addEventListener('mousemove', ({ clientX, clientY }) => {
     const { top, left } = cvs.value.getBoundingClientRect()
@@ -81,7 +90,9 @@ onMounted(async () => {
 
 <template lang="pug">
 .game__container
-  canvas(ref="cvs")
+  .pepe #[b PePe]Defense.io
+  canvas(ref="cvs" v-if="show_canvas")
+  div(v-else) #[b Wrong network] please configure metamask to use the Polygon chain
 </template>
 
 <style lang="stylus" scoped>
@@ -111,6 +122,21 @@ onMounted(async () => {
       padding 0 1em
   canvas
     background black
-    // width 100%
-    // height 100%
+    border-radius 12px
+    box-shadow 1px 2px 5px black
+  div
+    text-shadow 1px 2px 3px black
+    color white
+    font-size 2em
+    padding 2em
+    display flex
+    flex-flow column nowrap
+    b
+      font-weight 900
+      color crimson
+    &.pepe
+      flex-flow row nowrap
+      padding .5em
+      b
+        color green
 </style>

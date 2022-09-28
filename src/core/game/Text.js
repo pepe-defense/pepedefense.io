@@ -52,6 +52,17 @@ export default class Text {
       )
   }
 
+  static get_loader_text() {
+    switch (Game.globals.loading_state) {
+      case 1:
+        return 'Prerunning in metamask (please wait)'
+      case 2:
+        return 'Waiting transaction confirmation'
+      default:
+        return 'Syncing blockchain'
+    }
+  }
+
   static create_loader() {
     let loading_dots = 0
     const x = Game.globals.width / 2
@@ -60,11 +71,11 @@ export default class Text {
       x,
       y,
       text: tick => {
-        if (tick % 30 === 0) {
+        if (tick % 20 === 0) {
           loading_dots++
-          if (loading_dots >= 5) loading_dots = 0
+          if (loading_dots >= 5) loading_dots = 1
         }
-        return `Waiting transaction confirmation${'.'.repeat(loading_dots)}`
+        return `${Text.get_loader_text()}${'.'.repeat(loading_dots)}`
       },
       align: 'center',
     })

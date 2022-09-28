@@ -2,7 +2,7 @@ import map from '../assets/map.json'
 
 export const MAP_WIDTH = 16
 export const MAP_HEIGHT = 9
-export const MAX_WAVES = 20
+export const MAX_WAVES = 2
 export const MOB_BASE_LIFE = 3
 export const MOB_BASE_SPEED = 15
 export const MOB_BASE_AMOUNT = 5

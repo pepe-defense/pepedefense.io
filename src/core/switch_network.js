@@ -1,11 +1,12 @@
 const chains = {
-  mumbai: {
+  80001: {
     chainId: '0x13881',
     chainName: 'Polygon Mumbai',
     nativeCurrency: { name: 'MATIC', decimals: 18, symbol: 'MATIC' },
     rpcUrls: ['https://matic-mumbai.chainstacklabs.com/'],
     blockExplorerUrls: ['https://mumbai.polygonscan.com/'],
   },
+  31337: {},
 }
 
 export default async chain => {
@@ -13,6 +14,7 @@ export default async chain => {
   if (!ethereum) return
   const { chainId, chainName, nativeCurrency, rpcUrls, blockExplorerUrls } =
     chains[chain]
+  if (!chainId) return
   if (ethereum.networkVersion !== chainId) {
     await window.ethereum
       .request({

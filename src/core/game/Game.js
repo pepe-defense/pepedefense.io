@@ -21,12 +21,12 @@ export default class Game {
     height: 0,
     mouse: { x: 0, y: 0 },
     leaderboard: new Map(),
-    loading: false,
+    loading_state: null,
     contract: {},
     address: '',
   }
 
-  constructor({ contract, address, canvas: { width, height } }) {
+  constructor({ contract, address, canvas: { width, height }, provider }) {
     Object.assign(Game.globals, { width, height, contract, address })
 
     this.loading_text = Text.create_loader()
@@ -48,50 +48,24 @@ export default class Game {
     this.buttons = [sound_button]
 
     // contract events
-    contract.on('game_created', (player, wave, life) => {
-      if (player === address) {
-        alert('new game created for this address, reloading..')
-        this.new_game()
-        Game.globals.loading = false
-      }
+    contract.on('game_created', async (player, wave, life) => {
+      if (player === address) await this.load()
+    })
+
+    contract.on('towers_placed', player => {
+      if (player === address) Game.set_loading_over()
     })
   }
 
-  new_game() {
-    this.scene = new Waves(() => (this.scene = this.menu))
-  }
-
-  async load_game(wave) {
-    Game.globals.loading = true
-    const { contract } = Game.globals
-    const waves = new Waves(() => (this.scene = this.menu))
-    const score = await contract.get_score()
-    const tick = await contract.get_total_tick()
-    const towers = await contract.get_towers()
-    waves.load_state({
-      finished: await contract.get_is_finished(),
-      score: score.toNumber(),
-      wave,
-      life: await contract.get_life(),
-      tick: tick.toNumber(),
-      towers: new Map(
-        towers
-          .map(parse_struct)
-          .map(tower => {
-            const tile_index = TOWERS_CELLS.findIndex(
-              ({ x, y }) => cell_id({ x, y }) === tower.cell_id
-            )
-            return [tile_index, new Tower({ tile_index, ...tower })]
-          })
-          .filter(x => !!x)
-      ),
-    })
-    this.scene = waves
-    Game.globals.loading = false
+  async load() {
+    const waves = new Waves()
+    await waves.load()
+    if (waves.wave !== 0) this.scene = waves
+    else Game.set_loading_over()
   }
 
   on_click() {
-    if (Game.globals.loading) return
+    if (Game.globals.loading_state) return
     const { mouse } = Game.globals
     this.scene.on_click(mouse)
     this.buttons.find(btn => btn.collide(mouse))?.on_click()
@@ -103,7 +77,7 @@ export default class Game {
 
   on_render(/** @type {CanvasRenderingContext2D} */ c) {
     this.scene.on_render(c)
-    if (Game.globals.loading) this.loading_text.draw(c)
+    if (Game.globals.loading_state) this.loading_text.draw(c)
     else this.buttons.forEach(btn => btn.draw(c))
   }
 
@@ -116,5 +90,21 @@ export default class Game {
         .sort(([, p1], [, p2]) => p1.score - p2.score)
         .slice(0, 10)
     )
+  }
+
+  static set_loading_over() {
+    Game.globals.loading_state = 0
+  }
+
+  static set_loading_syncing() {
+    Game.globals.loading_state = 1
+  }
+
+  static set_loading_transaction() {
+    Game.globals.loading_state = 2
+  }
+
+  static set_loading_fetch() {
+    Game.globals.loading_state = 3
   }
 }

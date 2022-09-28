@@ -19,18 +19,18 @@ export default class {
       x: Game.globals.width / 2,
       y: Game.globals.height / 2,
       on_click: async () => {
-        Game.globals.loading = true
+        Game.set_loading_syncing()
         Game.globals.contract
           .new_game()
-          .catch(() => (Game.globals.loading = false))
-        this.new_game_button = undefined
+          .then(Game.set_loading_transaction)
+          .catch(Game.set_loading_over)
       },
     })
   }
 
   on_click() {
     const { mouse } = Game.globals
-    this.buttons.find(btn => btn.collide(mouse))?.on_click()
+    if (this.new_game_button?.collide(mouse)) this.new_game_button.on_click()
   }
 
   on_tick() {}

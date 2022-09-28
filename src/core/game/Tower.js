@@ -16,7 +16,7 @@ export default class extends Sprite {
   constructor({
     tile_index,
     range,
-    damage = 1,
+    damage = 5,
     fire_rate = 5,
     score_value = 100,
   }) {

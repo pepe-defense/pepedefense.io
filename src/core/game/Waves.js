@@ -6,6 +6,9 @@ import heart from '../../assets/heart.png'
 import table from '../../assets/table_down.png'
 import star from '../../assets/star.png'
 import confirm from '../../assets/btn_accept.png'
+import restart from '../../assets/button_restart.png'
+import failed from '../../assets/failed.png'
+import win from '../../assets/win.png'
 import {
   curve,
   MAX_WAVES,
@@ -14,6 +17,7 @@ import {
   MOB_PATH,
   TILE_PIXEL_SIZE,
   TOWERS_CELLS,
+  cell_id,
 } from '../constant.js'
 
 import Text from './Text.js'
@@ -22,13 +26,14 @@ import PlacementTile from './PlacementTile.js'
 import Tower from './Tower.js'
 import Sprite from './Sprite.js'
 import Game from './Game.js'
+import parse_struct from './parse_struct.js'
 
 const NAME = 'sceat'
 
 export default class {
   finished = false
   score = 0
-  wave = 1
+  wave = 0
   life = 10
   tick = 0
   towers = new Map()
@@ -41,16 +46,27 @@ export default class {
   start_wave_button
   place_tower_text
   place_tower_btn
+  restart_button
+  failed_sprite
   static_sprites = []
 
-  constructor(show_menu) {
+  constructor() {
     this.background.src = map
-    this.show_menu = show_menu
     TOWERS_CELLS.forEach(({ x, y }, tile_index) => {
       this.placement_tiles.push(new PlacementTile({ tile_index }))
     })
-    this.show_start_wave_button()
-    this.show_place_towers_ui()
+    this.restart_button = new Sprite({
+      src: restart,
+      x: Game.globals.width - 100,
+      y: 40,
+      on_click: () => {
+        Game.set_loading_syncing()
+        Game.globals.contract
+          .new_game()
+          .then(Game.set_loading_transaction)
+          .catch(Game.set_loading_over)
+      },
+    })
 
     this.static_sprites = [
       new Text({ x: 25, y: 25, text: () => this.life, icon: heart, scale: 1 }),
@@ -71,6 +87,47 @@ export default class {
     ]
   }
 
+  async load() {
+    Game.set_loading_fetch()
+    const { contract } = Game.globals
+    const wave = await contract.get_wave()
+    if (wave === 0) {
+      Game.set_loading_over()
+      return
+    }
+    const score = await contract.get_score()
+    const tick = await contract.get_total_tick()
+    const towers = await contract.get_towers()
+
+    Object.assign(this, {
+      finished: await contract.get_is_finished(),
+      score: score.toNumber(),
+      wave,
+      life: await contract.get_life(),
+      tick: tick.toNumber(),
+      towers: new Map(
+        towers
+          .map(parse_struct)
+          .map(tower => {
+            const tile_index = TOWERS_CELLS.findIndex(
+              ({ x, y }) => cell_id({ x, y }) === tower.cell_id
+            )
+            return [tile_index, new Tower({ tile_index, ...tower })]
+          })
+          .filter(x => !!x)
+      ),
+    })
+
+    if (this.finished) this.show_end_sprite(true)
+    else if (this.life === 0) this.show_end_sprite(false)
+    else {
+      this.show_start_wave_button()
+      this.show_place_towers_ui()
+    }
+
+    Game.set_loading_over()
+  }
+
   get is_wave_in_progress() {
     if (this.life < 1) return false
     if (!this.all_spawned) return true
@@ -86,10 +143,6 @@ export default class {
     return this.life < 1
   }
 
-  load_state(state) {
-    Object.assign(this, state)
-  }
-
   show_start_wave_button() {
     this.start_wave_button = new Sprite({
       src: skull_anim,
@@ -98,11 +151,66 @@ export default class {
       on_click: () => {
         this.place_tower_text = undefined
         this.place_tower_btn = undefined
-        Game.globals.loading = true
-        Game.globals.contract.start_wave()
+        Game.set_loading_syncing()
+        Game.globals.contract.once(
+          'wave',
+          (
+            player,
+            current_wave,
+            mobs,
+            towers,
+            life_remaining,
+            tick,
+            won_the_wave,
+            score
+          ) => {
+            if (player === Game.globals.address) {
+              const parsed_mobs = mobs.map(parse_struct)
+              const parsed_towers = towers.map(parse_struct)
+              const parsed_ticks = tick.toNumber()
+              const parsed_score = score.toNumber()
+              console.dir({
+                player,
+                current_wave,
+                parsed_mobs,
+                parsed_towers,
+                life_remaining,
+                parsed_ticks,
+                won_the_wave,
+                parsed_score,
+              })
+              this.wave = current_wave
+              this.mobs_amount = parsed_mobs.length
+              this.all_spawned = false
+              this.start_wave_button = null
+              this.started = true
+              this.future_score = parsed_score
+              Game.set_loading_over()
+            }
+          }
+        )
+        Game.globals.contract
+          .start_wave()
+          .then(Game.set_loading_transaction)
+          .catch(Game.set_loading_over)
       },
       frame_max: 13,
       frame_hold: 10,
+    })
+  }
+
+  show_end_sprite(game_won) {
+    this.failed_sprite = new Sprite({
+      src: game_won ? win : failed,
+      x: Game.globals.width / 2,
+      y: Game.globals.height / 2,
+      scale: 1,
+    })
+
+    Object.assign(this.restart_button, {
+      x: Game.globals.width / 2,
+      y: Game.globals.height / 2 + 80,
+      scale: 0.8,
     })
   }
 
@@ -118,7 +226,7 @@ export default class {
       x: Game.globals.width / 2,
       y: 70,
       on_click: () => {
-        Game.globals.loading = true
+        Game.set_loading_syncing()
         console.log(
           'storing',
           [...this.towers.values()].map(tower => tower.blockchain_tower)
@@ -127,20 +235,10 @@ export default class {
           .set_towers(
             [...this.towers.values()].map(tower => tower.blockchain_tower)
           )
-          .finally(() => (Game.globals.loading = false))
+          .then(Game.set_loading_transaction)
+          .catch(Game.set_loading_over)
       },
     })
-  }
-
-  start() {
-    this.mobs_amount = curve({
-      base: MOB_BASE_AMOUNT,
-      mod: MOB_AMOUNT_MODIFIER,
-      wave: this.wave,
-    })
-    this.all_spawned = false
-    this.start_wave_button = null
-    this.started = true
   }
 
   spawn_mob() {
@@ -153,13 +251,8 @@ export default class {
     this.mobs_spawned++
   }
 
-  on_game_lost() {
-    this.show_menu()
-  }
-
   hit() {
     this.life--
-    if (this.life < 1) this.on_game_lost()
   }
 
   remove_dead_mobs() {
@@ -175,6 +268,7 @@ export default class {
       this.start_wave_button.on_click()
     else if (this.place_tower_btn?.collide(mouse))
       this.place_tower_btn.on_click()
+    else if (this.restart_button?.collide(mouse)) this.restart_button.on_click()
 
     if (this.started) return
     const { tile_index } =
@@ -185,15 +279,6 @@ export default class {
       if (this.towers.has(tile_index)) this.towers.delete(tile_index)
       else this.towers.set(tile_index, new Tower({ tile_index, range: 3 }))
     }
-  }
-
-  compute_score() {
-    const towers_value = [...this.towers.values()].reduce(
-      (acc, { score_value }) => acc + score_value,
-      0
-    )
-    const intermediate = towers_value * this.life * this.wave * this.wave
-    return this.tick >= intermediate ? 0 : intermediate - this.tick
   }
 
   on_tick() {
@@ -216,13 +301,24 @@ export default class {
 
     // wave end
     if (this.all_spawned && !this.mobs.length) {
-      Game.set_score(NAME, this.compute_score())
+      Game.set_score(NAME, this.future_score)
       this.score = Game.globals.leaderboard.get(NAME)
       this.started = false
-      this.wave++
       this.mobs_spawned = 0
-      this.show_start_wave_button()
+      if (this.wave >= MAX_WAVES) {
+        this.finished = true
+        this.show_end_sprite(true)
+      } else {
+        this.wave++
+        this.show_start_wave_button()
+        this.show_place_towers_ui()
+      }
     } else this.tick++
+
+    if (this.life === 0) {
+      this.started = false
+      this.show_end_sprite(false)
+    }
   }
 
   on_render(/** @type {CanvasRenderingContext2D} */ c) {
@@ -238,15 +334,17 @@ export default class {
       width,
       height
     )
-
-    this.start_wave_button?.draw(c)
     this.placement_tiles.forEach(tile => tile.draw(c, mouse))
     this.mobs.forEach(mob => mob.draw(c))
     this.towers.forEach(tower => tower.draw(c, mouse))
+    this.failed_sprite?.draw(c)
 
-    this.static_sprites.forEach(sprite => sprite.draw(c))
-    this.place_tower_text?.draw(c)
-    this.place_tower_btn?.draw(c)
-    // c.fillText(Game.globals.leaderboard.get(NAME) ?? 0, 470, 49)
+    if (!Game.globals.loading_state) {
+      this.start_wave_button?.draw(c)
+      this.place_tower_text?.draw(c)
+      this.place_tower_btn?.draw(c)
+      this.restart_button?.draw(c)
+      this.static_sprites.forEach(sprite => sprite.draw(c))
+    }
   }
 }
