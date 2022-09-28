@@ -14,26 +14,26 @@ import Game from '../core/game/Game.js'
 import ABI from '../assets/abi.json'
 
 const {
-  VITE_APP_CHAIN_ID = 31337,
-  CONTRACT_ADDRESS = '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318',
+  VITE_CHAIN_ID = 31337,
+  VITE_CONTRACT_ADDRESS = '0x8A791620dd6260079BF849Dc5567aDC3F2FdC318',
 } = import.meta.env
 
 const cvs = ref()
 const show_canvas = ref(true)
 
 const connect = async () => {
-  await switch_network(VITE_APP_CHAIN_ID)
+  await switch_network(+VITE_CHAIN_ID)
 
   const network = window.ethereum.networkVersion
   console.log('current network', +network)
-  show_canvas.value = +network === +VITE_APP_CHAIN_ID
+  show_canvas.value = +network === +VITE_CHAIN_ID
   const provider = new ethers.providers.Web3Provider(window.ethereum, 'any')
   await provider.send('eth_requestAccounts', [])
   provider.on('network', new_network => {
     // When a Provider makes its initial connection, it emits a "network"
     // event with a null oldNetwork along with the newNetwork. So, if the
     // oldNetwork exists, it represents a changing network
-    show_canvas.value = +new_network.chainId === VITE_APP_CHAIN_ID
+    show_canvas.value = +new_network.chainId === +VITE_CHAIN_ID
   })
   window.ethereum.on('accountsChanged', () => {
     alert(
@@ -41,7 +41,7 @@ const connect = async () => {
     )
   })
   if (show_canvas.value)
-    return new ethers.Contract(CONTRACT_ADDRESS, ABI, provider.getSigner())
+    return new ethers.Contract(VITE_CONTRACT_ADDRESS, ABI, provider.getSigner())
 }
 
 onMounted(async () => {
@@ -49,6 +49,7 @@ onMounted(async () => {
   if (!contract) return
   const address = await contract.signer.getAddress()
   const canvas = cvs.value
+  if (!canvas) return
   canvas.width = MAP_WIDTH * TILE_PIXEL_SIZE
   canvas.height = MAP_HEIGHT * TILE_PIXEL_SIZE
 
@@ -92,7 +93,7 @@ onMounted(async () => {
 .game__container
   .pepe #[b PePe]Defense.io
   canvas(ref="cvs" v-if="show_canvas")
-  div(v-else) #[b Wrong network] please configure metamask to use the Polygon chain
+  div(v-else) #[b Wrong network] please configure metamask to use the Polygon chain and reload the page
 </template>
 
 <style lang="stylus" scoped>
